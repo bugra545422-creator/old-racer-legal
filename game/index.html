@@ -207,7 +207,7 @@
   .pbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--amber),var(--hot));transition:width 1s linear}
   .stars{font:800 38px/1 var(--font);color:var(--amber);letter-spacing:4px;margin:10px 0}
   .stars .off{color:rgba(255,255,255,.2)}
-  #toast{position:absolute;left:50%;top:calc(88px + env(safe-area-inset-top));transform:translateX(-50%);z-index:60;padding:8px 16px;border-radius:999px;background:rgba(10,14,24,.95);border:1px solid var(--amber);font:700 14px var(--font);white-space:nowrap;opacity:0;transition:opacity .25s;pointer-events:none;max-width:92%;overflow:hidden;text-overflow:ellipsis}
+  #toast{position:absolute;left:50%;top:calc(140px + env(safe-area-inset-top));transform:translateX(-50%);z-index:60;padding:8px 16px;border-radius:999px;background:rgba(10,14,24,.95);border:1px solid var(--amber);font:700 14px var(--font);white-space:nowrap;opacity:0;transition:opacity .25s;pointer-events:none;max-width:92%;overflow:hidden;text-overflow:ellipsis}
   #toast.on{opacity:1}
 
   /* ===== radio / tracks / race / online ===== */
@@ -363,6 +363,10 @@
   #app.iscity .best{display:none}
   #segCity button{flex:1;min-width:0;padding:0 6px}
   #citySheet p{margin-top:6px}
+
+  /* perf + layout fixes */
+  *,*::before,*::after{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+  :root{--glass:rgba(12,16,28,.82)}
 </style>
 <link rel="manifest" href="manifest.json"><script>if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});</script></head>
 <body>
@@ -883,8 +887,9 @@ let roadNear=300;
 /* ---------------- sizing ---------------- */
 const stage=$('stage');
 let vig=null, stars=[];
+let QCAP=1.25, _qs=0, _qn=0;
 function resize(){
-  DPR=Math.min(window.devicePixelRatio||1,2);
+  DPR=Math.min(window.devicePixelRatio||1,QCAP);
   const r=stage.getBoundingClientRect();
   W=Math.max(220,Math.floor(r.width)); H=Math.max(300,Math.floor(r.height));
   cv.width=Math.floor(W*DPR); cv.height=Math.floor(H*DPR);
@@ -1831,6 +1836,8 @@ $('autoGas').addEventListener('change',e=>{ autoGas=e.target.checked; store.set(
 /* ---------------- main loop ---------------- */
 let last=performance.now();
 function frame(now){
+  const raw=now-last;
+  if(raw>0&&raw<250&&state!=='pause'){ _qs+=raw; _qn++; if(_qn>=90){ const av=_qs/_qn; _qs=0; _qn=0; if(av>26&&QCAP>0.75){ QCAP=Math.max(0.75,QCAP-0.25); resize(); } } }
   const dt=Math.min(.033,Math.max(0,(now-last)/1000)); last=now;
   clock+=dt;
   readKeys();
